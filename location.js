@@ -6,7 +6,7 @@ var geolib = require('geolib')
 function getPostsWithinRadius(userLat, userLng, posts) {
   const radius = 10;
   var q = [];
-  for p in posts:
+  for (p in posts):
     var dist = geolib.getDistance(
       {latitude: userLat, longitude: userLng},
       {latitude: posts.latitude, longitude: posts.longitude}
