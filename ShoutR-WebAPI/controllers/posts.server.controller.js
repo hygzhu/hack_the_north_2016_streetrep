@@ -40,6 +40,10 @@ exports.rankUp = function (req, res) {
     repository.rankUpPost(req.params.postKey);
     res.json({ info: "User post has been ranked up" });
 };
+exports.rankDown = function (req, res) {
+    repository.rankDownPost(req.params.postKey);
+    res.json({ info: "User post has been ranked down" });
+};
 exports.createUser = function (req, res) {
     var user = new user_server_model_1.User(req.body.firstName, req.body.lastName, req.body.username);
     //res.json({info: 'created user'});

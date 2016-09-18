@@ -54,6 +54,12 @@ exports.rankUp = function(req:express.Request, res: express.Response){
     
 }
 
+exports.rankDown = function(req:express.Request, res: express.Response){
+
+    repository.rankDownPost(req.params.postKey);
+    res.json({info: "User post has been ranked down"});
+    
+}
 
 exports.createUser = function(req:express.Request, res:express.Response){
 var user: User = new User(

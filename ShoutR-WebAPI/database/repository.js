@@ -21,12 +21,18 @@ var Repository = (function () {
         this.firebaseDb = firebase.database();
     }
     Repository.prototype.createNewUser = function (user) {
-        this.firebaseDb.ref('users/' + user.username).set({
+        // A post entry.
+        var userData = {
             username: user.username,
             firstname: user.firstName,
             lastname: user.lastName,
-            streetCred: user.streetCred
-        });
+        };
+        // Get a key for a new Post.
+        var userKey = user.username;
+        // Write the new post's data simultaneously in the posts list and the user's post list.
+        var updates = {};
+        updates['/users/' + userKey] = userData;
+        return this.firebaseDb.ref().update(updates);
     };
     Repository.prototype.writeNewPost = function (post) {
         // A post entry.
@@ -49,30 +55,57 @@ var Repository = (function () {
         return this.firebaseDb.ref().update(updates);
     };
     Repository.prototype.rankUpPost = function (postKey) {
-        var promise = this.firebaseDb.ref().child('posts').child(postKey).once('value');
+        var postRatingRef = this.firebaseDb.ref().child('posts').child(postKey).child('rating');
+        postRatingRef.transaction(function (rating) {
+            return rating + 1;
+        });
+    };
+    Repository.prototype.rankDownPost = function (postKey) {
+        var postRatingRef = this.firebaseDb.ref().child('posts').child(postKey).child('rating');
+        postRatingRef.transaction(function (rating) {
+            return rating - 1;
+        });
+    };
+    Repository.prototype.determineCred = function (posts) {
+        var cur = 0;
+        //for (cur = 0,i = 0,len = posts.length; i<len; i++) {
+        for (var p in posts) {
+            var postTime = (Date.now() - p.postDate) / 1000; //Convert to seconds
+            if (postTime <= 3600) {
+                cur += p.rating;
+            }
+            else if (postTime >= 86400) {
+                continue;
+            }
+            else {
+                var dx = Math.floor(postTime / 3600); // number of hours
+                var perrier = (100 - (4 * dx)) / 100;
+                var inc = (Math.floor((p.rating * perrier) * 10)) / 10;
+                cur += inc;
+            }
+        }
+        return cur;
+    };
+    Repository.prototype.evalStreetCredOfUser = function (username) {
+        var promise = this.getPostsOfUser(username);
         promise.then(function (snapshot) {
             // The Promise was "fulfilled" (it succeeded).
-            var postData = snapshot.val();
-            postData.rating = postData.rating + 1;
-            var updates = {};
-            updates['/posts/' + postKey] = postData;
-            updates['/user-posts/' + postData.username + '/' + postKey] = postData;
-            // return this.firebaseDb.ref().update(updates);
+            var posts = snapshot.val();
+            var newStreetCred = this.determineCred(posts);
+            var streetCredRef = this.firebaseDb.ref().child('users').child(username).child('streetCred');
+            streetCredRef.transaction(function (rating) {
+                return newStreetCred;
+            });
         }, function (error) {
             // The Promise was rejected.
             console.log(error);
         });
-    };
-    Repository.prototype.rankDownPost = function (postKey) {
     };
     Repository.prototype.getPost = function (postKey) {
         return this.firebaseDb.ref().child('posts').child(postKey).once('value');
     };
     Repository.prototype.getPostsOfUser = function (username) {
         return this.firebaseDb.ref().child('user-posts').child(username).once('value');
-    };
-    };
-    Repository.prototype.rankDownPost = function (postKey) {
     };
     Repository.prototype.getPosts = function () {
         /*

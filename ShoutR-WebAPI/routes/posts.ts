@@ -32,6 +32,10 @@ router.post('/rankup/:postKey',function(req,res){
   return postsCtrl.rankUp(req,res);
 });
 
+router.post('/rankdown/:postKey',function(req,res){
+  return postsCtrl.rankDown(req,res);
+});
+
 module.exports = router;
 /*
 

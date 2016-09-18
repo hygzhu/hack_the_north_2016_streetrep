@@ -34,12 +34,21 @@ var config = {
 
 
 createNewUser(user: User) {
-  this.firebaseDb.ref('users/' + user.username).set({
+  // A post entry.
+  var userData = {
     username: user.username,
     firstname: user.firstName,
     lastname: user.lastName,
-    streetCred: user.streetCred
-  });
+  };
+
+  // Get a key for a new Post.
+  var userKey = user.username;
+  
+  // Write the new post's data simultaneously in the posts list and the user's post list.
+  var updates = {};
+  updates['/users/' + userKey] = userData;
+  
+  return this.firebaseDb.ref().update(updates);
 }
 
 
@@ -69,17 +78,62 @@ createNewUser(user: User) {
 
 rankUpPost(postKey: string){
 
-  var promise = this.firebaseDb.ref().child('posts').child(postKey).once('value');
-  
-  promise.then(function(snapshot) {
-  // The Promise was "fulfilled" (it succeeded).
-   var postData = snapshot.val();
-   postData.rating = postData.rating + 1;
-   var updates = {};
-   updates['/posts/' + postKey] = postData;
-   updates['/user-posts/' + postData.username + '/' + postKey] = postData;
+  var postRatingRef = this.firebaseDb.ref().child('posts').child(postKey).child('rating');
 
- // return this.firebaseDb.ref().update(updates);
+  postRatingRef.transaction(function(rating) {
+    return rating + 1;
+  });
+
+  
+}
+
+rankDownPost(postKey: string){
+
+var postRatingRef = this.firebaseDb.ref().child('posts').child(postKey).child('rating');
+  postRatingRef.transaction(function(rating) {
+    return rating - 1;
+  });
+
+}
+
+
+determineCred(posts) {
+  var cur = 0;
+  //for (cur = 0,i = 0,len = posts.length; i<len; i++) {
+    for (var p in posts) {
+   
+    var postTime = (Date.now() - p.postDate)/1000; //Convert to seconds
+    if (postTime <= 3600) {
+      cur += p.rating;
+    } else if (postTime >= 86400) {
+      continue;
+    } else {
+      var dx = Math.floor(postTime / 3600); // number of hours
+      var perrier = (100 - (4*dx)) / 100;
+      var inc = (Math.floor((p.rating * perrier) * 10)) / 10;
+      cur += inc;
+    }
+  }
+  return cur;
+}
+
+
+evalStreetCredOfUser(username: string){
+
+var promise = this.getPostsOfUser(username);
+ promise.then(function(snapshot) {
+  // The Promise was "fulfilled" (it succeeded).
+   var posts = snapshot.val();
+
+
+   var newStreetCred = this.determineCred(posts);
+
+  var streetCredRef = this.firebaseDb.ref().child('users').child(username).child('streetCred');
+
+  streetCredRef.transaction(function(rating) {
+    return newStreetCred;
+  });
+
 
 }, function(error) {
   // The Promise was rejected.
@@ -89,9 +143,10 @@ rankUpPost(postKey: string){
 
 }
 
-rankDownPost(postKey: string){
+ 
 
-}
+
+
 
 
 getPost(postKey: string){
@@ -167,13 +222,14 @@ ref.child('blogposts').child(id).once('value').then(function(snapshot) {
 
 
 }
-
-
-
-
-
-
 }
+
+
+
+
+
+
+
 
 
 
