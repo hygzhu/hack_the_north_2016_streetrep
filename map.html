@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="http://maps.googleapis.com/maps/api/js?key=AIzaSyD3EYFfqNl0U9MxqmRgRCXa3cPQnuDN9lA&sensor=false&callback=initialize"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>
+
+var latitude;
+var longitude;
+var accuracy;
+
+navigator.geolocation.getCurrentPosition(showPosition);
+
+function showPosition(position) {
+   latitude = position.coords.latitude;
+   longitude = position.coords.longitude;
+   accuracy = position.coords.accuracy;
+}
+
+alert('Allow this page to access your location first (we recommend firefox), then wait about 5 seconds for the permissions to pass through');
+
+alert('Your accuracy is more or less ' + accuracy + ' meters.');
+alert('Your latitude is: ' + latitude);
+alert('Your longitude is: ' + longitude);
+function initialize()
+{
+
+
+
+
+var mapProp = {
+ center:new google.maps.LatLng(latitude,longitude),
+ zoom:19,
+ mapTypeId:google.maps.MapTypeId.ROADMAP
+ };
+
+var map=new google.maps.Map(document.getElementById("googleMap")
+ ,mapProp);
+
+var marker = new google.maps.Marker({
+         position: new google.maps.LatLng(latitude,longitude),
+         map: map,
+         title: 'Hello World!'
+       });
+
+}
+
+google.maps.event.addDomListener(window, 'load', initialize);
+$(document).ready(function(){
+  $("#shoutButton").on("click",function(){ 
+
+  var myKeyVals =  {
+"username": localStorage.getItem("username"),
+"message": $(this).parents().find("input[name=message]").val(),
+"latitude": latitude,
+"longitude":longtitude
+} 
+  
+$.ajax({
+     method: 'POST',
+     crossDomain: true,
+     url: "http://localhost:3000/posts/message",
+      contentType: "application/json",
+     data: myKeyVals,
+     success: function(e){
+     }
+ }
+ )
+})
+})
+
+</script>
+</head>
+
+<body style="width:100%;height:100%;">
+<div id="googleMap" style="width:1000px; height:900px"></div>
+<form id ="messageform">
+  <input type = "text" name = "message"></input>
+  <button type="submit" method="POST" id="shoutButton">Shout!</button>
+</form>
+</body>
+</html>
