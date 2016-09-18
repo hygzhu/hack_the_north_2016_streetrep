@@ -25,6 +25,7 @@ var Repository = (function () {
             username: user.username,
             firstname: user.firstName,
             lastname: user.lastName,
+            streetCred: user.streetCred
         });
     };
     Repository.prototype.writeNewPost = function (post) {
@@ -44,8 +45,56 @@ var Repository = (function () {
         // Write the new post's data simultaneously in the posts list and the user's post list.
         var updates = {};
         updates['/posts/' + postKey] = postData;
-        //updates['/user-posts/' + uid + '/' + newPostKey] = postData;
+        updates['/user-posts/' + post.username + '/' + postKey] = postData;
         return this.firebaseDb.ref().update(updates);
+    };
+    Repository.prototype.rankUpPost = function (postKey) {
+    };
+    Repository.prototype.rankDownPost = function (postKey) {
+    };
+    Repository.prototype.getPosts = function () {
+        /*
+          var postsRef = this.firebaseDb.ref().child('posts');
+          var posts;
+          postsRef.once('value', function(snapshot) {
+            return snapshot.val();
+         // updateStarCount(postElement, snapshot.val());
+        }, function(error){
+        console.log(error);
+        });
+        */
+        return this.firebaseDb.ref().child('posts').once('value');
+        //return posts;
+        //var variable; 
+        //return this.firebaseDb.ref().child('posts' + '/' + "-KRvVsH593_6fAlI2sAK").once('value')
+        /*.then(function(snapshot){
+          variable = 5;
+          return variable;
+        }, function(error){
+          variable = error;
+          return variable;
+        });*/
+        /*
+        Let's demonstrate the differences between callbacks and promises by building part of a blog webapp. Our first step is to fetch an article’s contents. Here is how it might look with callbacks:
+        
+        ref.child('blogposts').child(id).once('value', function(snapshot) {
+          // The callback succeeded; do something with the final result.
+          renderBlog(snapshot.val());
+        }, function(error) {
+          // The callback failed.
+          console.error(error);
+        });
+        The Promise-based implementation is similar:
+        
+        ref.child('blogposts').child(id).once('value').then(function(snapshot) {
+          // The Promise was "fulfilled" (it succeeded).
+          renderBlog(snapshot.val());
+        }, function(error) {
+          // The Promise was rejected.
+          console.error(error);
+        });
+        
+        */
     };
     return Repository;
 }());

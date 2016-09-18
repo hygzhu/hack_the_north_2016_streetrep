@@ -4,6 +4,7 @@ var User = (function () {
         this.firstName = firstName;
         this.lastName = lastName;
         this.username = username;
+        this.streetCred = 0;
     }
     return User;
 }());

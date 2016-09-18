@@ -2,10 +2,18 @@
 var post_server_model_1 = require('../models/post.server.model');
 var user_server_model_1 = require('../models/user.server.model');
 var repository_1 = require('../database/repository');
+//import {Promise} from 'promise';
 var repository = new repository_1.Repository();
 //return postsCtrl.getPosts
 exports.getPosts = function (req, res) {
-    res.json({ info: 'Here are the messages' });
+    var promise = repository.getPosts();
+    promise.then(function (snapshot) {
+        // The Promise was "fulfilled" (it succeeded).
+        res.json(snapshot.val());
+    }, function (error) {
+        // The Promise was rejected.
+        res.json(error);
+    });
 };
 exports.createUser = function (req, res) {
     var user = new user_server_model_1.User(req.body.firstName, req.body.lastName, req.body.username);

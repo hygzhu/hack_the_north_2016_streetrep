@@ -237,7 +237,7 @@ is written to the server.
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-PROPER DATA SAVING 
+
  Structure Your Database
 
 This guide covers some of the key concepts in data architecture and best practices 
@@ -468,6 +468,40 @@ var starCountRef = firebase.database().ref('posts/' + postId + '/starCount');
 starCountRef.on('value', function(snapshot) {
   updateStarCount(postElement, snapshot.val());
 });
+
+
+Let's demonstrate the differences between callbacks and promises by building part of a blog webapp. Our first step is to fetch an article’s contents. Here is how it might look with callbacks:
+
+ref.child('blogposts').child(id).once('value', function(snapshot) {
+  // The callback succeeded; do something with the final result.
+  renderBlog(snapshot.val());
+}, function(error) {
+  // The callback failed.
+  console.error(error);
+});
+The Promise-based implementation is similar:
+
+ref.child('blogposts').child(id).once('value').then(function(snapshot) {
+  // The Promise was "fulfilled" (it succeeded).
+  renderBlog(snapshot.val());
+}, function(error) {
+  // The Promise was rejected.
+  console.error(error);
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 The listener receives a snapshot that contains the data at the specified location in the 
 database at the time of the event. You can retrieve the data in the snapshot with the val() method.

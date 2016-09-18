@@ -3,8 +3,8 @@ import * as express from 'express';
 
 import { Post } from '../models/post.server.model';
 import { User } from '../models/user.server.model';
-import { Repository } from '../database/repository'
-
+import { Repository } from '../database/repository';
+//import {Promise} from 'promise';
 
 var repository:Repository = new Repository(); 
 
@@ -12,13 +12,17 @@ var repository:Repository = new Repository();
 //return postsCtrl.getPosts
 exports.getPosts = function(req:express.Request, res: express.Response){
 
-    
-    
-    
-    res.json({info: 'Here are the messages'}); 
+    var promise  = repository.getPosts();
+    promise.then(function(snapshot) {
+  // The Promise was "fulfilled" (it succeeded).
+  res.json(snapshot.val());
+}, function(error) {
+  // The Promise was rejected.
+  res.json(error);
+});
 
 
-
+    
 }
 
 exports.createUser = function(req:express.Request, res:express.Response){
