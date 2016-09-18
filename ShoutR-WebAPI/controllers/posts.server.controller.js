@@ -15,6 +15,31 @@ exports.getPosts = function (req, res) {
         res.json(error);
     });
 };
+//return postsCtrl.getPosts
+exports.getPost = function (req, res) {
+    var promise = repository.getPost(req.params.postKey);
+    promise.then(function (snapshot) {
+        // The Promise was "fulfilled" (it succeeded).
+        res.json(snapshot.val());
+    }, function (error) {
+        // The Promise was rejected.
+        res.json(error);
+    });
+};
+exports.getPostsOfUser = function (req, res) {
+    var promise = repository.getPostsOfUser(req.params.username);
+    promise.then(function (snapshot) {
+        // The Promise was "fulfilled" (it succeeded).
+        res.json(snapshot.val());
+    }, function (error) {
+        // The Promise was rejected.
+        res.json(error);
+    });
+};
+exports.rankUp = function (req, res) {
+    repository.rankUpPost(req.params.postKey);
+    res.json({ info: "User post has been ranked up" });
+};
 exports.createUser = function (req, res) {
     var user = new user_server_model_1.User(req.body.firstName, req.body.lastName, req.body.username);
     //res.json({info: 'created user'});

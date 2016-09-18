@@ -69,10 +69,37 @@ createNewUser(user: User) {
 
 rankUpPost(postKey: string){
 
+  var promise = this.firebaseDb.ref().child('posts').child(postKey).once('value');
+  
+  promise.then(function(snapshot) {
+  // The Promise was "fulfilled" (it succeeded).
+   var postData = snapshot.val();
+   postData.rating = postData.rating + 1;
+   var updates = {};
+   updates['/posts/' + postKey] = postData;
+   updates['/user-posts/' + postData.username + '/' + postKey] = postData;
+
+ // return this.firebaseDb.ref().update(updates);
+
+}, function(error) {
+  // The Promise was rejected.
+  console.log(error);
+});
+
+
 }
 
 rankDownPost(postKey: string){
 
+}
+
+
+getPost(postKey: string){
+return this.firebaseDb.ref().child('posts').child(postKey).once('value')
+}
+
+getPostsOfUser(username: string){
+  return this.firebaseDb.ref().child('user-posts').child(username).once('value');
 }
 
 
@@ -88,6 +115,11 @@ console.log(error);
 });
 */
 return this.firebaseDb.ref().child('posts').once('value')
+
+
+
+
+
 
 
 

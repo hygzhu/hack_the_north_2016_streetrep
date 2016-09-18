@@ -23,5 +23,10 @@ router.post('/create', function(req,res,next){
   postsCtrl.createUser(req,res,next);
 });
 
+router.get('/:username/posts',function(req,res){
+  return postsCtrl.getPostsOfUser(req,res);
+});
+
+
 
 module.exports = router;

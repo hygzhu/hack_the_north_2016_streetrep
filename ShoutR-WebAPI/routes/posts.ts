@@ -7,6 +7,10 @@ router.get('/', function(req, res){
  return postsCtrl.getPosts(req,res);  
 });
 
+router.get('/:postKey', function(req, res){
+ return postsCtrl.getPost(req,res);  
+});
+
 /*
 Sample JSon
 
@@ -22,6 +26,10 @@ Sample JSon
 */
 router.post('/message', function(req, res){
    return postsCtrl.postMessage(req,res);
+});
+
+router.post('/rankup/:postKey',function(req,res){
+  return postsCtrl.rankUp(req,res);
 });
 
 module.exports = router;

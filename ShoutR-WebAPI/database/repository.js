@@ -49,6 +49,28 @@ var Repository = (function () {
         return this.firebaseDb.ref().update(updates);
     };
     Repository.prototype.rankUpPost = function (postKey) {
+        var promise = this.firebaseDb.ref().child('posts').child(postKey).once('value');
+        promise.then(function (snapshot) {
+            // The Promise was "fulfilled" (it succeeded).
+            var postData = snapshot.val();
+            postData.rating = postData.rating + 1;
+            var updates = {};
+            updates['/posts/' + postKey] = postData;
+            updates['/user-posts/' + postData.username + '/' + postKey] = postData;
+            // return this.firebaseDb.ref().update(updates);
+        }, function (error) {
+            // The Promise was rejected.
+            console.log(error);
+        });
+    };
+    Repository.prototype.rankDownPost = function (postKey) {
+    };
+    Repository.prototype.getPost = function (postKey) {
+        return this.firebaseDb.ref().child('posts').child(postKey).once('value');
+    };
+    Repository.prototype.getPostsOfUser = function (username) {
+        return this.firebaseDb.ref().child('user-posts').child(username).once('value');
+    };
     };
     Repository.prototype.rankDownPost = function (postKey) {
     };
