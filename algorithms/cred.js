@@ -1,4 +1,4 @@
-  // Super complex algorithm for determining the cred of a user
+// Super complex algorithm for determining the cred of a user
 
 function determineCred(posts) {
   for (cur = 0,i = 0,len = posts.length; i<len; i++) {

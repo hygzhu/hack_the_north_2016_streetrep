@@ -1,17 +1,19 @@
 //How do i even write json, lol..
 
-var express = require('express')
-var geolib = require('geolib')
+var geolib = require('geolib');
 
 function getPostsWithinRadius(userLat, userLng, posts) {
   const radius = 10;
   var q = [];
-  for (p in posts):
+  for (len=posts.length,i=0;i<len;i++) {
+    var p = posts[i];
     var dist = geolib.getDistance(
       {latitude: userLat, longitude: userLng},
-      {latitude: posts.latitude, longitude: posts.longitude}
+      {latitude: p.latitude, longitude: p.longitude}
     );
     if (dist <= radius) {
-      q.append(p)
+      q.push(p)
     }
+  }
+  return q;
 }
