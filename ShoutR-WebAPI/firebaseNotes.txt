@@ -417,3 +417,220 @@ This approach, inverting the data by listing the IDs as keys and setting the val
 true, makes checking for a key as simple as reading /users/$uid/groups/$group_id and 
 checking if it is null. The index is faster and a good deal more efficient than 
 querying or scanning the data.
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+Retrieving:
+
+
+ Retrieve Data on the Web
+
+This document covers the basics of retrieving data and how to order and filter Firebase data.
+
+Firebase data is retrieved by attaching an asynchronous listener to a firebase.database.Reference. 
+The listener is triggered once for the initial state of the data and again anytime the data changes.
+Note: By default, read and write access to your database is restricted so only authenticated users 
+can read or write data. To get started without setting up Authentication, you can configure your 
+rules for public access. This does make your database open to anyone, even people not using your 
+app, so be sure to restrict your database again when you set up authentication.
+Listen for events
+
+You can listen for these types of events that retrieve data:
+Event 	Typical usage
+value 	Read and listen for changes to the entire contents of a path.
+child_added 	Retrieve lists of items or listen for additions to a list of items. Suggested 
+use with child_changed and child_removed to monitor changes to lists.
+child_changed 	Listen for changes to the items in a list. Use with child_added and child_removed 
+to monitor changes to lists.
+child_removed 	Listen for items being removed from a list. Use with child_added and child_changed 
+to monitor changes to lists.
+child_moved 	Listen for changes to the order of items in an ordered list. child_moved events 
+always follow the child_changed event that caused the item's order to change (based on your current 
+order-by method).
+
+To add an event listener, use the on() method.
+Value events
+
+You can use the value event to read a static snapshot of the contents at a given path, 
+as they existed at the time of the event. This method is triggered once when the listener 
+is attached and again every time the data, including children, changes. The event callback 
+is passed a snapshot containing all data at that location, including child data. If there is 
+no data, the snapshot returned is null.
+Important: The value event is called every time data is changed at the specified database 
+reference, including changes to children. To limit the size of your snapshots, attach only 
+at the lowest level needed for watching changes. For example, attaching a listener to the 
+root of your database is not recommended.
+
+The following example demonstrates a social blogging application retrieving the star count 
+of a post from the database:
+
+var starCountRef = firebase.database().ref('posts/' + postId + '/starCount');
+starCountRef.on('value', function(snapshot) {
+  updateStarCount(postElement, snapshot.val());
+});
+
+The listener receives a snapshot that contains the data at the specified location in the 
+database at the time of the event. You can retrieve the data in the snapshot with the val() method.
+Child events
+
+Child events are triggered in response to specific operations that happen to the children 
+of a node from an operation such as a new child added through the push() method or a child
+ being updated through the update() method.
+
+The child_added event is typically used to retrieve a list of items in a Firebase database.
+ The child_added event is triggered once for each existing child and then again every time 
+ a new child is added to the specified path. The listener is passed a snapshot containing 
+ the new child's data.
+
+The child_changed event is triggered any time a child node is modified. This includes any 
+modifications to descendants of the child node. It is typically used in conjunction with 
+the child_added and child_removed events to respond to changes to a list of items. The 
+snapshot passed to the event listener contains the updated data for the child.
+
+The child_removed event is triggered when an immediate child is removed. It is typically
+ used in conjunction with the child_added and child_changed events. The snapshot passed 
+ to the event event contains the data for the removed child.
+
+The child_moved event is triggered whenever the child_changed event is triggered by an 
+update that causes reordering of the child. It is used with data that is ordered with 
+orderByChild or orderByValue.
+
+Each of these together can be useful for listening to changes to a specific node in a 
+database. For example, a social blogging app might use these methods together to monitor 
+activity in the comments of a post, as shown below:
+
+var commentsRef = firebase.database().ref('post-comments/' + postId);
+commentsRef.on('child_added', function(data) {
+  addCommentElement(postElement, data.key, data.val().text, data.val().author);
+});
+
+commentsRef.on('child_changed', function(data) {
+  setCommentValues(postElement, data.key, data.val().text, data.val().author);
+});
+
+commentsRef.on('child_removed', function(data) {
+  deleteComment(postElement, data.key);
+});
+
+Detach listeners
+
+Callbacks are removed by calling the off() method on your Firebase database reference.
+
+You can remove a single listener by passing it as a parameter to off(). 
+Calling off() on the location with no arguments removes all listeners at that location.
+
+Calling off() on a parent listener does not automatically remove listeners registered 
+on its child nodes; off() must also be called on any child listeners to remove the callback.
+Read data once
+
+In some cases you may want a snapshot of your data without listening for changes, such
+ as when initializing a UI element that you don't expect to change. You can use the 
+ once() method to simplify this scenario: it triggers once and then does not trigger again.
+
+This is useful for data that only needs to be loaded once and isn't expected to change 
+frequently or require active listening. For instance, the blogging app in the previous 
+examples uses this method to load a user's profile when they begin authoring a new post:
+
+var userId = firebase.auth().currentUser.uid;
+return firebase.database().ref('/users/' + userId).once('value').then(function(snapshot) {
+  var username = snapshot.val().username;
+  // ...
+});
+
+Sorting and filtering data
+
+You can use the Realtime Database Query class to retrieve data sorted by key, 
+by value, or by value of a child. You can also filter the sorted result to a 
+specific number of results or a range of keys or values.
+Note: Filtering and sorting can be expensive, especially when done on the client. 
+If your app uses queries, define the .indexOn rule to index those keys on the server 
+and improve query performance as described in Indexing Your Data.
+Sort data
+
+To retrieve sorted data, start by specifying one of the order-by methods to determine 
+how results are ordered:
+Method 	Usage
+orderByChild() 	Order results by the value of a specified child key.
+orderByKey() 	Order results by child keys.
+orderByValue() 	Order results by child values.
+
+You can only use one order-by method at a time. Calling an order-by method multiple 
+times in the same query throws an error.
+
+The following example demonstrates how you could retrieve a list of a user's top posts 
+sorted by their star count:
+
+var myUserId = firebase.auth().currentUser.uid;
+var topUserPostsRef = firebase.database().ref('user-posts/' + myUserId).orderByChild('starCount');
+
+This defines a query that when combined with a child listener synchronizes the client 
+with the user's posts from the path in the database based on their user ID, ordered by 
+the number of stars each post has received. This technique of using IDs as index keys is 
+called data fan out, you can read more about it in Structure Your Database.
+
+The call to the orderByChild() method specifies the child key to order the results by. In 
+this case, posts are sorted by the value of the "starCount" child in each post. For more 
+information on how other data types are ordered, see How query data is ordered.
+Filtering data
+
+To filter data, you can combine any of the limit or range methods with an order-by method 
+when constructing a query.
+Method 	Usage
+limitToFirst() 	Sets the maximum number of items to return from the beginning of the ordered list of results.
+limitToLast() 	Sets the maximum number of items to return from the end of the ordered list of results.
+startAt() 	Return items greater than or equal to the specified key or value, depending on the order-by method chosen.
+endAt() 	Return items less than or equal to the specified key or value, depending on the order-by method chosen.
+equalTo() 	Return items equal to the specified key or value, depending on the order-by method chosen.
+
+Unlike the order-by methods, you can combine multiple limit or range functions. 
+For example, you can combine the startAt() and endAt() methods to limit the results 
+to a specified range of values.
+Limit the number of results
+
+You can use the limitToFirst() and limitToLast() methods to set a maximum number of 
+children to be synced for a given event. For example, if you use limitToFirst() to 
+set a limit of 100, you initially only receive up to 100 child_added events. If you 
+have fewer than 100 items stored in your Firebase database, a child_added event fires 
+for each item.
+
+As items change, you receive child_added events for items that enter the query and 
+child_removed events for items that drop out of it so that the total number stays at 100.
+
+The following example demonstrates how example blogging app defines a query to retrieve a 
+list of the 100 most recent posts by all users:
+
+var recentPostsRef = firebase.database().ref('posts').limitToLast(100);
+
+This example only defines a query, to actually synchronize data it needs to have an attached listener.
+Filter by key or value
+
+You can use startAt(), endAt(), and equalTo() to choose arbitrary starting, ending, and 
+equivalence points for queries. This can be useful for paginating data or finding items 
+with children that have a specific value.
+How query data is ordered
+
+This section explains how data is sorted by each of the order-by methods in the Query class.
+orderByChild
+
+When using orderByChild(), data that contains the specified child key is ordered as follows:
+
+    Children with a null value for the specified child key come first.
+    Children with a value of false for the specified child key come next. If multiple children have a value of false, they are sorted lexicographically by key.
+    Children with a value of true for the specified child key come next. If multiple children have a value of true, they are sorted lexicographically by key.
+    Children with a numeric value come next, sorted in ascending order. If multiple children have the same numerical value for the specified child node, they are sorted by key.
+    Strings come after numbers and are sorted lexicographically in ascending order. If multiple children have the same value for the specified child node, they are ordered lexicographically by key.
+    Objects come last and are sorted lexicographically by key in ascending order.
+
+orderByKey
+
+When using orderByKey() to sort your data, data is returned in ascending order by key.
+
+    Children with a key that can be parsed as a 32-bit integer come first, sorted in ascending order.
+    Children with a string value as their key come next, sorted lexicographically in ascending order.
+
+orderByValue
+
+When using orderByValue(), children are ordered by their value. The ordering criteria are 
+the same as in orderByChild(), except the value of the node is used instead of the value 
+of a specified child key.
+

@@ -1,3 +1,4 @@
+"use strict";
 var User = (function () {
     function User(firstName, lastName, username) {
         this.firstName = firstName;
@@ -6,3 +7,4 @@ var User = (function () {
     }
     return User;
 }());
+exports.User = User;

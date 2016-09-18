@@ -7,6 +7,19 @@ router.get('/', function(req, res){
  return postsCtrl.getPosts(req,res);  
 });
 
+/*
+Sample JSon
+
+{
+
+"username": "harman",
+"message": "poo",
+"latitude": "500",
+"longitude": "60"
+
+}
+
+*/
 router.post('/message', function(req, res){
    return postsCtrl.postMessage(req,res);
 });
